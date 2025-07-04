@@ -90,7 +90,7 @@ jobs:
         SPANNER_EMULATOR_HOST: localhost:9010
       run: |
         echo "Setting up database schema..."
-        go run scripts/setup.go
+        bash scripts/setup-emulator.sh
     
     - name: Run integration tests
       env:
