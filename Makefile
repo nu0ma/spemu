@@ -28,10 +28,13 @@ build: ## Build the binary
 
 build-all: ## Build for all platforms
 	@echo "Building for multiple platforms..."
-	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME)-linux-amd64 $(MAIN_PATH)
-	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME)-darwin-amd64 $(MAIN_PATH)
-	GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME)-darwin-arm64 $(MAIN_PATH)
-	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME)-windows-amd64.exe $(MAIN_PATH)
+	for os in linux darwin windows; do \
+		for arch in amd64 arm64; do \
+			if [ "$$os" = "windows" ] && [ "$$arch" = "arm64" ]; then continue; fi; \
+			ext=""; [ "$$os" = "windows" ] && ext=".exe"; \
+			GOOS=$$os GOARCH=$$arch go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME)-$$os-$$arch$$ext $(MAIN_PATH); \
+		done; \
+	done
 
 install: ## Install the binary to GOPATH/bin
 	go install -ldflags "-X main.Version=$(VERSION)" .
@@ -57,17 +60,10 @@ test-unit: ## Run unit tests
 	@echo "Running unit tests..."
 	go test -v -race -coverprofile=coverage.out $(TEST_PKG_LIST)
 
-test-unit-verbose: ## Run unit tests with verbose output
-	go test -v -race -coverprofile=coverage.out $(TEST_PKG_LIST)
-
 test-integration: ## Run integration tests (automatically starts emulator)
 	@echo "Running integration tests..."
 	@echo "Note: This will automatically setup Spanner emulator if needed"
 	SPANNER_EMULATOR_HOST=localhost:9010 go test -v ./test/...
-
-test-integration-verbose: ## Run integration tests with verbose output
-	@echo "Running integration tests with verbose output..."
-	SPANNER_EMULATOR_HOST=localhost:9010 go test -v -race ./test/...
 
 test-all: test-unit test-integration ## Run all tests including integration tests
 
@@ -76,8 +72,6 @@ test-coverage: ## Run tests and show coverage
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report saved to coverage.html"
 
-test-bench: ## Run benchmark tests
-	go test -bench=. -benchmem ./...
 
 # Docker and Spanner Emulator targets
 emulator-start: ## Start Spanner emulator with Docker
@@ -149,24 +143,3 @@ release-check: ## Check if ready for release
 	$(MAKE) build
 	@echo "Release check completed successfully!"
 
-# Help for specific commands
-examples: ## Show usage examples
-	@echo "Usage examples:"
-	@echo ""
-	@echo "1. Install spemu:"
-	@echo "   make install"
-	@echo ""
-	@echo "2. Start development environment:"
-	@echo "   make dev-setup"
-	@echo "   make emulator-start"
-	@echo ""
-	@echo "3. Run tests:"
-	@echo "   make test-unit"
-	@echo "   make test-integration  # requires emulator"
-	@echo ""
-	@echo "4. Development workflow:"
-	@echo "   make dev-test  # format, lint, unit test"
-	@echo "   make dev-full  # format, lint, all tests"
-	@echo ""
-	@echo "5. Run demo:"
-	@echo "   make demo  # requires emulator"

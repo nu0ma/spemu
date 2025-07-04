@@ -16,18 +16,14 @@ var Version = "dev"
 
 func main() {
 	var (
-		dryRun    = flag.Bool("dry-run", false, "Parse and validate DML without executing")
-		verbose   = flag.Bool("verbose", false, "Enable verbose output")
-		help      = flag.Bool("help", false, "Show help message")
-		version   = flag.Bool("version", false, "Show version information")
-		project   = flag.String("project", "", "Spanner project ID (required)")
-		projectS  = flag.String("p", "", "Spanner project ID (short form)")
-		instance  = flag.String("instance", "", "Spanner instance ID (required)")
-		instanceS = flag.String("i", "", "Spanner instance ID (short form)")
-		database  = flag.String("database", "", "Spanner database ID (required)")
-		databaseS = flag.String("d", "", "Spanner database ID (short form)")
-		port      = flag.String("port", "9010", "Spanner emulator port (default: 9010)")
-		portS     = flag.String("P", "9010", "Spanner emulator port (short form)")
+		dryRun   = flag.Bool("dry-run", false, "Parse and validate DML without executing")
+		verbose  = flag.Bool("verbose", false, "Enable verbose output")
+		help     = flag.Bool("help", false, "Show help message")
+		version  = flag.Bool("version", false, "Show version information")
+		project  = flag.String("project", "", "Spanner project ID (required)")
+		instance = flag.String("instance", "", "Spanner instance ID (required)")
+		database = flag.String("database", "", "Spanner database ID (required)")
+		port     = flag.String("port", "9010", "Spanner emulator port (default: 9010)")
 	)
 	flag.Parse()
 
@@ -50,31 +46,17 @@ func main() {
 
 	dmlFile := args[0]
 
-	// Use short form if long form is empty
-	if *project == "" && *projectS != "" {
-		*project = *projectS
-	}
-	if *instance == "" && *instanceS != "" {
-		*instance = *instanceS
-	}
-	if *database == "" && *databaseS != "" {
-		*database = *databaseS
-	}
-	if *port == "9010" && *portS != "9010" {
-		*port = *portS
-	}
-
 	// Validate required flags
 	if *project == "" {
-		fmt.Fprintf(os.Stderr, "Error: --project (or -p) is required\n")
+		fmt.Fprintf(os.Stderr, "Error: --project is required\n")
 		os.Exit(1)
 	}
 	if *instance == "" {
-		fmt.Fprintf(os.Stderr, "Error: --instance (or -i) is required\n")
+		fmt.Fprintf(os.Stderr, "Error: --instance is required\n")
 		os.Exit(1)
 	}
 	if *database == "" {
-		fmt.Fprintf(os.Stderr, "Error: --database (or -d) is required\n")
+		fmt.Fprintf(os.Stderr, "Error: --database is required\n")
 		os.Exit(1)
 	}
 
@@ -103,7 +85,11 @@ func main() {
 	if *dryRun {
 		fmt.Printf("Dry run: %d statements would be executed\n", len(statements))
 		for i, stmt := range statements {
-			fmt.Printf("Statement %d: %s\n", i+1, stmt[:min(50, len(stmt))]+"...")
+			limit := 50
+			if len(stmt) < limit {
+				limit = len(stmt)
+			}
+			fmt.Printf("Statement %d: %s\n", i+1, stmt[:limit]+"...")
 		}
 		return
 	}
@@ -129,26 +115,20 @@ Usage:
   spemu [options] <dml-file>
 
 Options:
-  --project, -p    Spanner project ID (required)
-  --instance, -i   Spanner instance ID (required)
-  --database, -d   Spanner database ID (required)
-  --port, -P       Spanner emulator port (default: 9010)
+  --project        Spanner project ID (required)
+  --instance       Spanner instance ID (required)
+  --database       Spanner database ID (required)
+  --port           Spanner emulator port (default: 9010)
   --dry-run        Parse and validate DML without executing
   --verbose        Enable verbose output
   --version        Show version information
   --help           Show this help message
 
 Examples:
-  spemu -p test-project -i test-instance -d test-database ./seed.sql
+  spemu --project=test-project --instance=test-instance --database=test-database ./seed.sql
   spemu --project=my-proj --instance=my-inst --database=my-db --dry-run ./test.sql
-  spemu -p test -i test -d test --port=9020 ./users.sql
+  spemu --project=test --instance=test --database=test --port=9020 ./users.sql
 
 `)
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}

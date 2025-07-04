@@ -37,10 +37,10 @@ spemu [options] <dml-file>
 
 ### Options
 
-- `--project, -p`: Spanner project ID (required)
-- `--instance, -i`: Spanner instance ID (required)  
-- `--database, -d`: Spanner database ID (required)
-- `--port, -P`: Spanner emulator port (default: 9010)
+- `--project`: Spanner project ID (required)
+- `--instance`: Spanner instance ID (required)  
+- `--database`: Spanner database ID (required)
+- `--port`: Spanner emulator port (default: 9010)
 - `--dry-run`: Parse and validate DML without executing
 - `--verbose`: Enable verbose output
 - `--help`: Show help message
@@ -49,16 +49,10 @@ spemu [options] <dml-file>
 
 ```bash
 # Execute DML file against emulator
-spemu -p test-project -i test-instance -d test-database ./examples/seed.sql
+spemu --project=test-project --instance=test-instance --database=test-database ./examples/seed.sql
 
 # Dry run to validate SQL
-spemu -p test-project -i test-instance -d test-database --dry-run ./examples/seed.sql
-
-# Verbose output
-spemu -p test-project -i test-instance -d test-database --verbose ./examples/seed.sql
-
-# Use custom emulator port
-spemu -p test-project -i test-instance -d test-database --port=9020 ./examples/seed.sql
+spemu --project=test-project --instance=test-instance --database=test-database --dry-run ./examples/seed.sql
 ```
 
 ## DML File Format
@@ -88,7 +82,6 @@ DELETE FROM users WHERE id = 2;
 
 - Go 1.21 or later
 - Docker and Docker Compose
-- Make (optional, for convenience commands)
 
 ### Setup Development Environment
 
@@ -96,9 +89,6 @@ DELETE FROM users WHERE id = 2;
 # Clone repository
 git clone https://github.com/nu0ma/spemu.git
 cd spemu
-
-# Install development dependencies
-make dev-setup
 
 # Start Spanner emulator
 make emulator-setup
@@ -112,69 +102,6 @@ make test-unit
 
 # Run integration tests (requires emulator)
 make test-integration
-
-# Run all tests
-make test-all
-
-# Run tests with coverage
-make test-coverage
-```
-
-### Development Workflow
-
-```bash
-# Format code, lint, and run unit tests
-make dev-test
-
-# Format code, lint, and run all tests
-make dev-full
-
-# Run demo with example data
-make demo
-```
-
-### Emulator Management
-
-```bash
-# Start emulator and initialize database
-make emulator-setup
-
-# Start emulator only
-make emulator-start
-
-# Initialize database schema
-make emulator-init
-
-# Stop emulator
-make emulator-stop
-
-# Reset emulator (stop, start, initialize)
-make emulator-reset
-
-# View emulator logs
-make emulator-logs
-```
-
-## Docker Usage
-
-### Start Emulator
-
-```bash
-# Start emulator
-docker-compose up -d spanner-emulator
-
-# Initialize database
-docker-compose --profile init up spanner-init
-```
-
-### Development Container
-
-```bash
-# Start development environment
-docker-compose --profile dev up -d spemu-dev
-
-# Run tests in container
-docker-compose exec spemu-dev make test-unit
 ```
 
 ## CI/CD
@@ -208,40 +135,13 @@ The project includes GitHub Actions workflows for:
 
 We welcome contributions! This project uses automated versioning and releases.
 
-### Development Guidelines
-
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+2. Create a feature branch
 3. Make your changes
-4. Run tests (`make dev-full`)
+4. Run tests (`make test-unit`)
 5. Follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages
-6. Push to the branch (`git push origin feature/amazing-feature`)
+6. Push to the branch
 7. Open a Pull Request
-
-### Commit Message Format
-
-We use [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning:
-
-- `feat:` - New feature (minor version bump)
-- `fix:` - Bug fix (patch version bump)
-- `feat!:` or `BREAKING CHANGE:` - Breaking change (major version bump)
-- `docs:` - Documentation changes
-- `ci:` - CI/CD changes
-- `test:` - Test changes
-- `refactor:` - Code refactoring
-
-Examples:
-```
-feat: add support for custom port configuration
-fix: resolve connection timeout issues
-feat!: change CLI argument format (breaking change)
-```
-
-### Automated Releases
-
-- When PRs are merged to `main`, [release-please](https://github.com/googleapis/release-please) automatically creates release PRs
-- Release PRs are automatically merged, creating GitHub releases with compiled binaries
-- Versions follow [Semantic Versioning](https://semver.org/)
 
 ## License
 

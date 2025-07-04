@@ -40,7 +40,11 @@ func (e *Executor) ExecuteStatements(statements []string, verbose bool) error {
 	_, err := e.client.ReadWriteTransaction(ctx, func(ctx context.Context, txn *spanner.ReadWriteTransaction) error {
 		for i, stmt := range statements {
 			if verbose {
-				fmt.Printf("Executing statement %d/%d: %s\n", i+1, len(statements), stmt[:min(100, len(stmt))]+"...")
+				limit := 100
+				if len(stmt) < limit {
+					limit = len(stmt)
+				}
+				fmt.Printf("Executing statement %d/%d: %s\n", i+1, len(statements), stmt[:limit]+"...")
 			}
 
 			_, err := txn.Update(ctx, spanner.Statement{SQL: stmt})
@@ -58,9 +62,3 @@ func (e *Executor) ExecuteStatements(statements []string, verbose bool) error {
 	return nil
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}

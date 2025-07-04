@@ -37,26 +37,3 @@ services:
     profiles:
       - init
 
-  # Development service for running tests
-  spemu-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: spemu-dev
-    depends_on:
-      - spanner-emulator
-    environment:
-      - SPANNER_EMULATOR_HOST=spanner-emulator:9010
-      - CGO_ENABLED=0
-    volumes:
-      - .:/workspace
-      - go-mod-cache:/go/pkg/mod
-      - go-build-cache:/root/.cache/go-build
-    working_dir: /workspace
-    command: tail -f /dev/null
-    profiles:
-      - dev
-
-volumes:
-  go-mod-cache:
-  go-build-cache:
