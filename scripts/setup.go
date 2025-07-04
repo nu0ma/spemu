@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 
 	database "cloud.google.com/go/spanner/admin/database/apiv1"
@@ -76,7 +76,7 @@ func main() {
 	defer databaseAdminClient.Close()
 
 	// Read schema file
-	schemaBytes, err := ioutil.ReadFile("test/schema.sql")
+	schemaBytes, err := os.ReadFile("test/schema.sql")
 	if err != nil {
 		log.Fatalf("Failed to read schema file: %v", err)
 	}
