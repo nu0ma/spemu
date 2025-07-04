@@ -1,4 +1,4 @@
-module github.com/nu0ma/spanenr-inserter
+module github.com/nu0ma/spemu
 
 go 1.24.3
 

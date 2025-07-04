@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/nu0ma/spanenr-inserter/pkg/config"
-	"github.com/nu0ma/spanenr-inserter/pkg/executor"
-	"github.com/nu0ma/spanenr-inserter/pkg/parser"
+	"github.com/nu0ma/spemu/pkg/config"
+	"github.com/nu0ma/spemu/pkg/executor"
+	"github.com/nu0ma/spemu/pkg/parser"
 )
 
 func main() {
