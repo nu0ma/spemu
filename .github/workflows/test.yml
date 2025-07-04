@@ -55,11 +55,11 @@ jobs:
       run: go test -v -race -coverprofile=coverage.out ./pkg/...
     
     - name: Build binary
-      run: go build -v -o spemu ./cmd
+      run: go build -v -o spemu ./cmd/spemu
     
     - name: Test go install
       run: |
-        go install ./cmd
+        go install ./cmd/spemu
         spemu --help
 
   integration:
@@ -104,8 +104,8 @@ jobs:
       env:
         SPANNER_EMULATOR_HOST: localhost:9010
       run: |
-        go run ./cmd -p test-project -i test-instance -d test-database --dry-run examples/seed.sql
-        go run ./cmd -p test-project -i test-instance -d test-database examples/seed.sql
+        go run ./cmd/spemu -p test-project -i test-instance -d test-database --dry-run examples/seed.sql
+        go run ./cmd/spemu -p test-project -i test-instance -d test-database examples/seed.sql
     
     - name: Upload coverage reports
       if: github.event_name == 'push'
@@ -130,7 +130,7 @@ jobs:
         go-version: ${{ matrix.go-version }}
     
     - name: Build
-      run: go build -v -o spemu ./cmd
+      run: go build -v -o spemu ./cmd/spemu
     
     - name: Test
       run: go test -v ./pkg/...
@@ -151,7 +151,7 @@ jobs:
     - name: Test go install from git
       run: |
         # Test installing directly from the repository
-        go install github.com/nu0ma/spemu/cmd@latest
+        go install github.com/nu0ma/spemu/cmd/spemu@latest
         
         # Verify binary works
         spemu --help
