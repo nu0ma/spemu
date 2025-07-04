@@ -83,7 +83,7 @@ func setupTestDatabase(t *testing.T) (*spanner.Client, func()) {
 		// Clean up test data
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cleanupCancel()
-		
+
 		_, err := client.Apply(cleanupCtx, []*spanner.Mutation{
 			spanner.Delete("comments", spanner.AllKeys()),
 			spanner.Delete("posts", spanner.AllKeys()),
