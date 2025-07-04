@@ -7,6 +7,7 @@ BINARY_NAME=spemu
 MAIN_PATH=.
 PKG_LIST := $(shell go list ./...)
 TEST_PKG_LIST := $(shell go list ./pkg/...)
+VERSION := $(shell cat version.txt)
 
 # Default target
 help: ## Show this help message
@@ -23,17 +24,17 @@ dev-setup: ## Install development dependencies
 # Build targets
 build: ## Build the binary
 	@echo "Building $(BINARY_NAME)..."
-	go build -o $(BINARY_NAME) $(MAIN_PATH)
+	go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME) $(MAIN_PATH)
 
 build-all: ## Build for all platforms
 	@echo "Building for multiple platforms..."
-	GOOS=linux GOARCH=amd64 go build -o $(BINARY_NAME)-linux-amd64 $(MAIN_PATH)
-	GOOS=darwin GOARCH=amd64 go build -o $(BINARY_NAME)-darwin-amd64 $(MAIN_PATH)
-	GOOS=darwin GOARCH=arm64 go build -o $(BINARY_NAME)-darwin-arm64 $(MAIN_PATH)
-	GOOS=windows GOARCH=amd64 go build -o $(BINARY_NAME)-windows-amd64.exe $(MAIN_PATH)
+	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME)-linux-amd64 $(MAIN_PATH)
+	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME)-darwin-amd64 $(MAIN_PATH)
+	GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME)-darwin-arm64 $(MAIN_PATH)
+	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME)-windows-amd64.exe $(MAIN_PATH)
 
 install: ## Install the binary to GOPATH/bin
-	go install .
+	go install -ldflags "-X main.Version=$(VERSION)" .
 
 # Code quality targets
 fmt: ## Format Go code
