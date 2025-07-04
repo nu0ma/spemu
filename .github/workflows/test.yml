@@ -150,7 +150,7 @@ jobs:
     - name: Test go install from git
       run: |
         # Test installing directly from the repository
-        go install github.com/nu0ma/spemu@latest
+        go install github.com/nu0ma/spemu/cmd/spemu@latest
         
         # Verify binary works
         spemu --help
