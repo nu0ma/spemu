@@ -103,8 +103,8 @@ jobs:
         SPANNER_EMULATOR_HOST: localhost:9010
         CI: true
       run: |
-        go run . -p test-project -i test-instance -d test-database --dry-run examples/seed.sql
-        go run . -p test-project -i test-instance -d test-database examples/seed.sql
+        go run . --project test-project --instance test-instance --database test-database --dry-run examples/seed.sql
+        go run . --project test-project --instance test-instance --database test-database examples/seed.sql
     
     - name: Stop Spanner emulator
       if: always()
