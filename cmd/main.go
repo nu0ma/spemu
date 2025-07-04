@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/ishikawaryoufutoshi/spanenr-inserter/pkg/config"
-	"github.com/ishikawaryoufutoshi/spanenr-inserter/pkg/executor"
-	"github.com/ishikawaryoufutoshi/spanenr-inserter/pkg/parser"
+	"github.com/nu0ma/spanenr-inserter/pkg/config"
+	"github.com/nu0ma/spanenr-inserter/pkg/executor"
+	"github.com/nu0ma/spanenr-inserter/pkg/parser"
 )
 
 func main() {

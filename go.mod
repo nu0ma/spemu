@@ -1,4 +1,4 @@
-module github.com/ishikawaryoufutoshi/spanenr-inserter
+module github.com/nu0ma/spanenr-inserter
 
 go 1.24.3
 

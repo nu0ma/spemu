@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"cloud.google.com/go/spanner"
-	"github.com/ishikawaryoufutoshi/spanenr-inserter/pkg/config"
+	"github.com/nu0ma/spanenr-inserter/pkg/config"
 )
 
 type Executor struct {
