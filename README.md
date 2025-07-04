@@ -206,13 +206,42 @@ The project includes GitHub Actions workflows for:
 
 ## Contributing
 
+We welcome contributions! This project uses automated versioning and releases.
+
+### Development Guidelines
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Run tests (`make dev-full`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
+
+### Commit Message Format
+
+We use [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning:
+
+- `feat:` - New feature (minor version bump)
+- `fix:` - Bug fix (patch version bump)
+- `feat!:` or `BREAKING CHANGE:` - Breaking change (major version bump)
+- `docs:` - Documentation changes
+- `ci:` - CI/CD changes
+- `test:` - Test changes
+- `refactor:` - Code refactoring
+
+Examples:
+```
+feat: add support for custom port configuration
+fix: resolve connection timeout issues
+feat!: change CLI argument format (breaking change)
+```
+
+### Automated Releases
+
+- When PRs are merged to `main`, [release-please](https://github.com/googleapis/release-please) automatically creates release PRs
+- Release PRs are automatically merged, creating GitHub releases with compiled binaries
+- Versions follow [Semantic Versioning](https://semver.org/)
 
 ## License
 
