@@ -74,37 +74,11 @@ jobs:
       with:
         go-version: '1.24'
     
-    - name: Start Spanner Emulator with Docker
-      run: |
-        # Start emulator
-        docker compose up -d spanner-emulator
-        
-        # Wait for emulator to be ready (check REST endpoint)
-        echo "Waiting for emulator to start..."
-        timeout=120
-        until curl -f http://localhost:9020/ >/dev/null 2>&1; do
-          echo "Waiting for emulator REST endpoint..."
-          sleep 5
-          timeout=$((timeout-5))
-          if [ $timeout -le 0 ]; then
-            echo "Timeout waiting for emulator"
-            docker compose logs spanner-emulator
-            exit 1
-          fi
-        done
-        
-        # Additional wait for gRPC endpoint
-        sleep 10
-        echo "Emulator is ready"
-        
-        # Initialize database
-        docker compose --profile init up spanner-init --exit-code-from spanner-init
+    - name: Setup Spanner Emulator
+      run: make emulator-setup
     
     - name: Run integration tests
-      env:
-        SPANNER_EMULATOR_HOST: localhost:9010
-        CI: true
-      run: go test -v ./test/...
+      run: make test-integration
     
     - name: Test with example data
       env:
