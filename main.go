@@ -11,11 +11,15 @@ import (
 	"github.com/nu0ma/spemu/pkg/parser"
 )
 
+// Version is set during build time via ldflags
+var Version = "dev"
+
 func main() {
 	var (
 		dryRun    = flag.Bool("dry-run", false, "Parse and validate DML without executing")
 		verbose   = flag.Bool("verbose", false, "Enable verbose output")
 		help      = flag.Bool("help", false, "Show help message")
+		version   = flag.Bool("version", false, "Show version information")
 		project   = flag.String("project", "", "Spanner project ID (required)")
 		projectS  = flag.String("p", "", "Spanner project ID (short form)")
 		instance  = flag.String("instance", "", "Spanner instance ID (required)")
@@ -26,6 +30,11 @@ func main() {
 		portS     = flag.String("P", "9010", "Spanner emulator port (short form)")
 	)
 	flag.Parse()
+
+	if *version {
+		fmt.Printf("spemu version %s\n", Version)
+		return
+	}
 
 	if *help {
 		showHelp()
@@ -126,6 +135,7 @@ Options:
   --port, -P       Spanner emulator port (default: 9010)
   --dry-run        Parse and validate DML without executing
   --verbose        Enable verbose output
+  --version        Show version information
   --help           Show this help message
 
 Examples:
