@@ -3,7 +3,6 @@ package test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"os/exec"
 	"testing"
@@ -28,19 +27,10 @@ func TestMain(m *testing.M) {
 		os.Setenv("SPANNER_EMULATOR_HOST", emulatorHost)
 	}
 
-	// Skip setup if running in CI (docker compose handles it)
-	if os.Getenv("CI") != "true" {
-		// Setup emulator instance and database
-		if err := setupEmulator(); err != nil {
-			fmt.Printf("Failed to setup emulator: %v\n", err)
-			os.Exit(1)
-		}
-	} else {
-		// In CI, just verify the emulator is accessible
-		if err := waitForEmulator(); err != nil {
-			fmt.Printf("Emulator not accessible in CI: %v\n", err)
-			os.Exit(1)
-		}
+	// Setup emulator instance and database
+	if err := setupEmulator(); err != nil {
+		fmt.Printf("Failed to setup emulator: %v\n", err)
+		os.Exit(1)
 	}
 
 	// Run tests
@@ -65,19 +55,6 @@ func setupEmulator() error {
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
-}
-
-func waitForEmulator() error {
-	// Wait for emulator to be accessible
-	for i := 0; i < 10; i++ {
-		resp, err := http.Get(fmt.Sprintf("http://%s", emulatorHost))
-		if err == nil {
-			resp.Body.Close()
-			return nil
-		}
-		time.Sleep(2 * time.Second)
-	}
-	return fmt.Errorf("emulator not accessible after 20 seconds")
 }
 
 func setupTestDatabase(t *testing.T) (*spanner.Client, func()) {
