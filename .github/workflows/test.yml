@@ -79,21 +79,26 @@ jobs:
         # Start emulator
         docker compose up -d spanner-emulator
         
-        # Wait for emulator to be ready
-        timeout=60
-        until curl -f http://localhost:9010 >/dev/null 2>&1; do
-          echo "Waiting for emulator to be ready..."
-          sleep 2
-          timeout=$((timeout-2))
+        # Wait for emulator to be ready (check REST endpoint)
+        echo "Waiting for emulator to start..."
+        timeout=120
+        until curl -f http://localhost:9020/ >/dev/null 2>&1; do
+          echo "Waiting for emulator REST endpoint..."
+          sleep 5
+          timeout=$((timeout-5))
           if [ $timeout -le 0 ]; then
             echo "Timeout waiting for emulator"
+            docker compose logs spanner-emulator
             exit 1
           fi
         done
+        
+        # Additional wait for gRPC endpoint
+        sleep 10
         echo "Emulator is ready"
         
         # Initialize database
-        docker compose --profile init up spanner-init
+        docker compose --profile init up spanner-init --exit-code-from spanner-init
     
     - name: Run integration tests
       env:

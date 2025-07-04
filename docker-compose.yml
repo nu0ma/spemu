@@ -6,10 +6,11 @@ services:
       - "9010:9010"
       - "9020:9020"
     healthcheck:
-      test: ["CMD", "sh", "-c", "nc -z localhost 9010"]
+      test: ["CMD", "curl", "-f", "http://localhost:9020/"]
       interval: 5s
-      timeout: 3s
-      retries: 10
+      timeout: 10s
+      retries: 20
+      start_period: 10s
     environment:
       - SPANNER_EMULATOR_HOST=localhost:9010
 
