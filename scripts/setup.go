@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	database "cloud.google.com/go/spanner/admin/database/apiv1"
+	databasepb "cloud.google.com/go/spanner/admin/database/apiv1/databasepb"
 	instance "cloud.google.com/go/spanner/admin/instance/apiv1"
+	instancepb "cloud.google.com/go/spanner/admin/instance/apiv1/instancepb"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	instancepb "cloud.google.com/go/spanner/admin/instance/apiv1/instancepb"
-	databasepb "cloud.google.com/go/spanner/admin/database/apiv1/databasepb"
 )
 
 const (
@@ -113,21 +113,21 @@ func main() {
 
 func parseDDL(content string) []string {
 	var statements []string
-	
+
 	// Split by lines and process
 	lines := strings.Split(content, "\n")
 	var currentStatement strings.Builder
-	
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		
+
 		// Skip comments and empty lines
 		if line == "" || strings.HasPrefix(line, "--") {
 			continue
 		}
-		
+
 		currentStatement.WriteString(line)
-		
+
 		// If line ends with semicolon, we have a complete statement
 		if strings.HasSuffix(line, ";") {
 			stmt := strings.TrimSpace(strings.TrimSuffix(currentStatement.String(), ";"))
@@ -139,7 +139,7 @@ func parseDDL(content string) []string {
 			currentStatement.WriteString(" ")
 		}
 	}
-	
+
 	// Handle any remaining statement
 	if currentStatement.Len() > 0 {
 		stmt := strings.TrimSpace(currentStatement.String())
@@ -147,6 +147,6 @@ func parseDDL(content string) []string {
 			statements = append(statements, stmt)
 		}
 	}
-	
+
 	return statements
 }

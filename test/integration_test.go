@@ -53,7 +53,7 @@ func setupEmulator() error {
 	cmd := exec.Command("bash", scriptPath)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	
+
 	return cmd.Run()
 }
 
