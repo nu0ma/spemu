@@ -71,19 +71,19 @@ func waitForEmulator() error {
 	maxAttempts := 30
 	host := "localhost"
 	port := emulatorHost[len(emulatorHost)-4:]
-	
+
 	for i := 0; i < maxAttempts; i++ {
 		// Use nc (netcat) to check if the port is listening
 		// -z: zero I/O mode (just check connectivity)
 		// -w1: timeout of 1 second
 		cmd := exec.Command("nc", "-z", "-w1", host, port)
 		err := cmd.Run()
-		
+
 		if err == nil {
 			// Port is listening and accepting connections
 			return nil
 		}
-		
+
 		// Wait before retry (starts with 1s, increases slightly each time)
 		waitTime := time.Duration(1+i/10) * time.Second
 		if waitTime > 3*time.Second {
