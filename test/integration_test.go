@@ -63,7 +63,7 @@ func setupEmulator() error {
 func setupTestDatabase(t *testing.T) (*spanner.Client, func()) {
 	t.Helper()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	cfg := &config.Config{
 		ProjectID:    testProjectID,
 		InstanceID:   testInstanceID,
@@ -73,13 +73,18 @@ func setupTestDatabase(t *testing.T) (*spanner.Client, func()) {
 
 	client, err := spanner.NewClient(ctx, cfg.DatabasePath())
 	if err != nil {
+		cancel()
 		t.Skipf("Failed to create Spanner client (emulator may not be running): %v", err)
 	}
 
 	// Cleanup function
 	cleanup := func() {
+		defer cancel()
 		// Clean up test data
-		_, err := client.Apply(ctx, []*spanner.Mutation{
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cleanupCancel()
+		
+		_, err := client.Apply(cleanupCtx, []*spanner.Mutation{
 			spanner.Delete("comments", spanner.AllKeys()),
 			spanner.Delete("posts", spanner.AllKeys()),
 			spanner.Delete("users", spanner.AllKeys()),
@@ -128,10 +133,11 @@ func TestIntegration_ExecuteStatements(t *testing.T) {
 	}
 
 	// Verify data was inserted
-	ctx := context.Background()
+	queryCtx, queryCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer queryCancel()
 
 	// Check users table
-	iter := client.Single().Query(ctx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM users"})
+	iter := client.Single().Query(queryCtx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM users"})
 	defer iter.Stop()
 	row, err := iter.Next()
 	if err != nil {
@@ -146,7 +152,7 @@ func TestIntegration_ExecuteStatements(t *testing.T) {
 	}
 
 	// Check posts table
-	iter = client.Single().Query(ctx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM posts"})
+	iter = client.Single().Query(queryCtx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM posts"})
 	defer iter.Stop()
 	row, err = iter.Next()
 	if err != nil {
@@ -289,8 +295,9 @@ func TestIntegration_TransactionRollback(t *testing.T) {
 	}
 
 	// Verify that no users were inserted (transaction should have rolled back)
-	ctx := context.Background()
-	iter := client.Single().Query(ctx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM users WHERE id IN (201, 202)"})
+	verifyCtx, verifyCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer verifyCancel()
+	iter := client.Single().Query(verifyCtx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM users WHERE id IN (201, 202)"})
 	defer iter.Stop()
 	row, err := iter.Next()
 	if err != nil {

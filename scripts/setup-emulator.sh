@@ -77,10 +77,19 @@ main() {
     echo "Waiting for emulator to be fully ready..."
     sleep 3
     
-    # Create instance and database using Go script
+    # Create instance and database using wrench
     echo "Setting up instance and database..."
     cd "$(dirname "$0")/.."
-    go run scripts/setup.go
+    
+    # Install wrench if not available
+    if ! command -v wrench &> /dev/null; then
+        echo "Installing wrench..."
+        go install github.com/cloudspannerecosystem/wrench@latest
+    fi
+    
+    # Create instance and database (reset if already exists)
+    echo "Setting up Spanner database..."
+    wrench reset --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --schema_file test/schema.sql
     
     echo ""
     echo "🎉 Emulator setup complete!"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"cloud.google.com/go/spanner"
 	"github.com/nu0ma/spemu/pkg/config"
@@ -14,7 +15,8 @@ type Executor struct {
 }
 
 func New(cfg *config.Config) (*Executor, error) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	if cfg.EmulatorHost != "" {
 		os.Setenv("SPANNER_EMULATOR_HOST", cfg.EmulatorHost)
@@ -35,7 +37,8 @@ func (e *Executor) Close() {
 }
 
 func (e *Executor) ExecuteStatements(statements []string, verbose bool) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	_, err := e.client.ReadWriteTransaction(ctx, func(ctx context.Context, txn *spanner.ReadWriteTransaction) error {
 		for i, stmt := range statements {

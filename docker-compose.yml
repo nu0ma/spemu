@@ -28,10 +28,12 @@ services:
         echo 'Installing dependencies...' &&
         apk add --no-cache git &&
         go mod download &&
+        echo 'Installing wrench...' &&
+        go install github.com/cloudspannerecosystem/wrench@latest &&
         echo 'Waiting for emulator to be ready...' &&
         sleep 5 &&
-        echo 'Running setup script...' &&
-        go run scripts/setup.go &&
+        echo 'Setting up database with wrench...' &&
+        wrench reset --project test-project --instance test-instance --database test-database --schema_file test/schema.sql &&
         echo 'Database setup complete!'
       "
     profiles:
