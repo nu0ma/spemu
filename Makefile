@@ -4,7 +4,7 @@
 
 # Variables
 BINARY_NAME=spemu
-MAIN_PATH=./cmd
+MAIN_PATH=./cmd/spemu
 PKG_LIST := $(shell go list ./...)
 TEST_PKG_LIST := $(shell go list ./pkg/...)
 
@@ -81,9 +81,9 @@ test-bench: ## Run benchmark tests
 # Docker and Spanner Emulator targets
 emulator-start: ## Start Spanner emulator with Docker
 	@echo "Starting Spanner emulator with Docker..."
-	docker-compose up -d spanner-emulator
+	docker compose up -d spanner-emulator
 	@echo "Waiting for emulator to be ready..."
-	@until docker-compose exec -T spanner-emulator curl -f http://localhost:9010 >/dev/null 2>&1; do \
+	@until docker compose exec -T spanner-emulator curl -f http://localhost:9010 >/dev/null 2>&1; do \
 		echo "Waiting for emulator..."; \
 		sleep 2; \
 	done
@@ -91,22 +91,22 @@ emulator-start: ## Start Spanner emulator with Docker
 
 emulator-init: ## Initialize database schema
 	@echo "Initializing database schema..."
-	docker-compose --profile init up spanner-init
-	docker-compose --profile init down spanner-init
+	docker compose --profile init up spanner-init
+	docker compose --profile init down spanner-init
 
 emulator-setup: emulator-start emulator-init ## Start emulator and initialize database
 
 emulator-stop: ## Stop Spanner emulator
 	@echo "Stopping Spanner emulator..."
-	docker-compose down
+	docker compose down
 
 emulator-reset: ## Reset and reinitialize emulator
 	@echo "Resetting emulator..."
-	docker-compose down
+	docker compose down
 	$(MAKE) emulator-setup
 
 emulator-logs: ## Show emulator logs
-	docker-compose logs -f spanner-emulator
+	docker compose logs -f spanner-emulator
 
 # Example and demo targets
 demo: build ## Run demo with example data
