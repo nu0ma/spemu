@@ -28,7 +28,11 @@ func ParseDMLContent(content string) ([]string, error) {
 		}
 
 		if !isValidDMLStatement(stmt) {
-			return nil, fmt.Errorf("invalid DML statement: %s", stmt[:min(50, len(stmt))])
+			limit := 50
+			if len(stmt) < limit {
+				limit = len(stmt)
+			}
+			return nil, fmt.Errorf("invalid DML statement: %s", stmt[:limit])
 		}
 
 		validStatements = append(validStatements, stmt)
@@ -81,11 +85,4 @@ func isValidDMLStatement(stmt string) bool {
 	}
 
 	return false
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

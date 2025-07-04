@@ -2,7 +2,7 @@
   "bootstrap-sha": "d9b78095b9b6e85bfd5b0c82cb2e961ac52d9fe2",
   "packages": {
     ".": {
-      "release-type": "simple",
+      "release-type": "go",
       "package-name": "spemu",
       "version-file": "version.txt"
     }
