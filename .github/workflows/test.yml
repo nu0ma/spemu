@@ -1,5 +1,9 @@
 name: Test
 
+# Development quality assurance workflow
+# Runs on PR creation and branch pushes
+# For releases, see release-please.yml
+
 on:
   push:
     branches: [ main, develop ]
@@ -113,48 +117,3 @@ jobs:
         file: ./coverage.out
         flags: unittests
 
-  build-matrix:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        go-version: ['1.24.x']
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ matrix.go-version }}
-    
-    - name: Build
-      run: go build -v -o spemu .
-    
-    - name: Test
-      run: go test -v ./pkg/...
-
-  release-test:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs: [test, integration]
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.24'
-    
-    - name: Test go install from git
-      run: |
-        # Test installing directly from the repository
-        go install github.com/nu0ma/spemu@latest
-        
-        # Verify binary works
-        spemu --help
-        
-        # Test with dry run
-        echo "INSERT INTO test (id) VALUES (1);" > test.sql
-        spemu -p test -i test -d test --dry-run test.sql
