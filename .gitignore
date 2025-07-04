@@ -67,4 +67,5 @@ build/
 
 .claude/settings.local.json
 
-./spemu-test
+spemu-test
+.todo

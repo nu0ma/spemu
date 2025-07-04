@@ -1,0 +1,161 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24.x'
+    
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
+    - name: Download dependencies
+      run: go mod download
+    
+    - name: Verify dependencies
+      run: go mod verify
+    
+    - name: Run gofmt
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "Code is not formatted:"
+          gofmt -s -l .
+          exit 1
+        fi
+    
+    - name: Run go vet
+      run: go vet ./...
+    
+    - name: Install staticcheck
+      run: go install honnef.co/go/tools/cmd/staticcheck@latest
+    
+    - name: Run staticcheck
+      run: staticcheck ./...
+    
+    - name: Run unit tests
+      run: go test -v -race -coverprofile=coverage.out ./pkg/...
+    
+    - name: Build binary
+      run: go build -v ./cmd
+    
+    - name: Test go install
+      run: |
+        go install ./cmd
+        spemu --help
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24.x'
+    
+    - name: Start Spanner Emulator with Docker
+      run: |
+        # Start emulator
+        docker-compose up -d spanner-emulator
+        
+        # Wait for emulator to be ready
+        timeout=60
+        until curl -f http://localhost:9010 >/dev/null 2>&1; do
+          echo "Waiting for emulator to be ready..."
+          sleep 2
+          timeout=$((timeout-2))
+          if [ $timeout -le 0 ]; then
+            echo "Timeout waiting for emulator"
+            exit 1
+          fi
+        done
+        echo "Emulator is ready"
+        
+        # Initialize database
+        docker-compose --profile init up spanner-init
+    
+    - name: Run integration tests
+      env:
+        SPANNER_EMULATOR_HOST: localhost:9010
+      run: go test -v ./test/...
+    
+    - name: Test with example data
+      env:
+        SPANNER_EMULATOR_HOST: localhost:9010
+      run: |
+        go run ./cmd -p test-project -i test-instance -d test-database --dry-run examples/seed.sql
+        go run ./cmd -p test-project -i test-instance -d test-database examples/seed.sql
+    
+    - name: Upload coverage reports
+      if: github.event_name == 'push'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.out
+        flags: unittests
+
+  build-matrix:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: ['1.21.x', '1.22.x', '1.23.x']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+    
+    - name: Build
+      run: go build -v ./cmd
+    
+    - name: Test
+      run: go test -v ./pkg/...
+
+  release-test:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [test, integration]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24.x'
+    
+    - name: Test go install from git
+      run: |
+        # Test installing directly from the repository
+        go install github.com/nu0ma/spemu/cmd@latest
+        
+        # Verify binary works
+        spemu --help
+        
+        # Test with dry run
+        echo "INSERT INTO test (id) VALUES (1);" > test.sql
+        spemu -p test -i test -d test --dry-run test.sql

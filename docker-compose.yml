@@ -1,0 +1,72 @@
+services:
+  spanner-emulator:
+    image: gcr.io/cloud-spanner-emulator/emulator:latest
+    container_name: spemu-spanner-emulator
+    ports:
+      - "9010:9010"
+      - "9020:9020"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z localhost 9010"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    environment:
+      - SPANNER_EMULATOR_HOST=localhost:9010
+
+  # Optional: Service to initialize the database
+  spanner-init:
+    image: google/cloud-sdk:alpine
+    platform: linux/amd64
+    container_name: spemu-spanner-init
+    depends_on:
+      spanner-emulator:
+        condition: service_healthy
+    environment:
+      - SPANNER_EMULATOR_HOST=spanner-emulator:9010
+    volumes:
+      - ./test:/workspace/test
+      - ./examples:/workspace/examples
+    working_dir: /workspace
+    command: >
+      sh -c "
+        echo 'Waiting for emulator to be ready...' &&
+        sleep 5 &&
+        echo 'Creating Spanner instance...' &&
+        gcloud spanner instances create test-instance 
+          --config=emulator-config 
+          --description='Test Instance' 
+          --nodes=1 &&
+        echo 'Creating database with schema...' &&
+        gcloud spanner databases create test-database 
+          --instance=test-instance 
+          --ddl-file=test/schema.sql &&
+        echo 'Database setup complete!' &&
+        echo 'You can now run tests against spanner-emulator:9010'
+      "
+    profiles:
+      - init
+
+  # Development service for running tests
+  spemu-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: spemu-dev
+    depends_on:
+      spanner-emulator:
+        condition: service_healthy
+    environment:
+      - SPANNER_EMULATOR_HOST=spanner-emulator:9010
+      - CGO_ENABLED=0
+    volumes:
+      - .:/workspace
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+    working_dir: /workspace
+    command: tail -f /dev/null
+    profiles:
+      - dev
+
+volumes:
+  go-mod-cache:
+  go-build-cache:
