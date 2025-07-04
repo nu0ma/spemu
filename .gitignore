@@ -34,8 +34,8 @@ ehthumbs.db
 Thumbs.db
 
 # Project specific binaries
-spemu
 /spemu
+./spemu
 
 # Environment files
 .env
