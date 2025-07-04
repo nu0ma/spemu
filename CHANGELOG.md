@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/nu0ma/spemu/compare/spemu-v0.2.0...spemu-v0.3.0) (2025-07-04)
+
+
+### Features
+
+* add --version flag to display version information ([#2](https://github.com/nu0ma/spemu/issues/2)) ([8aa3cd6](https://github.com/nu0ma/spemu/commit/8aa3cd66ba8a36e6a1bb3ad7930b491b54d3e1d8))
+
 ## [0.2.0](https://github.com/nu0ma/spemu/compare/spemu-v0.1.0...spemu-v0.2.0) (2025-07-04)
 
 
