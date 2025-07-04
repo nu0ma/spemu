@@ -74,9 +74,6 @@ jobs:
       with:
         go-version: '1.24'
     
-    - name: Setup Spanner Emulator
-      run: make emulator-setup
-    
     - name: Run integration tests
       run: make test-integration
     
