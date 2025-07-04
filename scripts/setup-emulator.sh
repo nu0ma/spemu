@@ -132,11 +132,21 @@ main() {
     
     # Create or reset instance and database
     echo "Setting up Spanner instance and database..."
-    # Using reset will drop and recreate the database if it exists
-    wrench reset --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --schema_file test/schema.sql || {
-        echo "Failed to setup database with wrench"
-        exit 1
-    }
+    
+    # First try to create the instance and database
+    if wrench create --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --schema_file test/schema.sql 2>&1 | grep -q "already exists"; then
+        echo "Database already exists, resetting..."
+        wrench reset --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --schema_file test/schema.sql || {
+            echo "Failed to reset database with wrench"
+            exit 1
+        }
+    else
+        # If create didn't show "already exists", re-run to see actual result
+        wrench create --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --schema_file test/schema.sql || {
+            echo "Failed to create database with wrench"
+            exit 1
+        }
+    fi
     
     echo ""
     echo "🎉 Emulator setup complete!"
