@@ -20,8 +20,9 @@ check_dependencies() {
         exit 1
     fi
     
-    if ! command -v curl &> /dev/null; then
-        echo "Error: curl is required but not installed"
+    if ! command -v nc &> /dev/null; then
+        echo "Error: nc (netcat) is required but not installed"
+        echo "Please install netcat: apt-get install netcat (Debian/Ubuntu) or brew install netcat (macOS)"
         exit 1
     fi
     
@@ -37,6 +38,37 @@ cleanup_existing() {
     fi
 }
 
+# Function to wait for emulator to be ready
+waitForEmulator() {
+    local port=$1
+    local max_attempts=30
+    local attempt=1
+    
+    echo "Waiting for emulator to be ready on port $port..."
+    
+    while [ $attempt -le $max_attempts ]; do
+        # Check if port is listening using nc (netcat)
+        # -z: zero I/O mode (just check connectivity)
+        # -w1: timeout of 1 second
+        if nc -z -w1 localhost "$port" 2>/dev/null; then
+            echo "Emulator is ready on port $port ✓"
+            return 0
+        fi
+        
+        # Show progress every 5 attempts
+        if [ $((attempt % 5)) -eq 0 ]; then
+            echo "Still waiting... (attempt $attempt/$max_attempts)"
+        fi
+        
+        # Wait before retry
+        sleep 1
+        attempt=$((attempt + 1))
+    done
+    
+    echo "Error: Emulator not ready on port $port after $max_attempts attempts"
+    return 1
+}
+
 # Function to start emulator
 start_emulator() {
     echo "Starting Spanner emulator..."
@@ -44,10 +76,6 @@ start_emulator() {
     
     docker run -d --name spanner-emulator -p 9010:9010 -p 9020:9020 \
         gcr.io/cloud-spanner-emulator/emulator:latest
-    
-    # Wait for emulator to be ready
-    echo "Waiting for emulator to be ready..."
-    sleep 5  # Give it time to start
     
     # Check if container is running
     if ! docker ps --format 'table {{.Names}}' | grep -q spanner-emulator; then
@@ -57,6 +85,19 @@ start_emulator() {
     fi
     
     echo "Emulator container is running ✓"
+    
+    # Wait for emulator to be ready on both ports
+    if ! waitForEmulator 9010; then
+        echo "Error: Emulator failed to start on port 9010"
+        docker logs spanner-emulator
+        exit 1
+    fi
+    
+    if ! waitForEmulator 9020; then
+        echo "Error: Emulator failed to start on port 9020"
+        docker logs spanner-emulator
+        exit 1
+    fi
 }
 
 # Main setup function
@@ -73,9 +114,11 @@ main() {
     # Set environment variables for emulator
     export SPANNER_EMULATOR_HOST=localhost:9010
     
-    # Wait a bit more for the emulator to be fully ready
-    echo "Waiting for emulator to be fully ready..."
-    sleep 3
+    # Ensure emulator is fully ready before proceeding
+    if ! waitForEmulator 9010; then
+        echo "Error: Emulator is not ready"
+        exit 1
+    fi
     
     # Create instance and database using wrench
     echo "Setting up instance and database..."
@@ -87,9 +130,13 @@ main() {
         go install github.com/cloudspannerecosystem/wrench@latest
     fi
     
-    # Create instance and database (reset if already exists)
-    echo "Setting up Spanner database..."
-    wrench reset --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --schema_file test/schema.sql
+    # Create or reset instance and database
+    echo "Setting up Spanner instance and database..."
+    # Using reset will drop and recreate the database if it exists
+    wrench reset --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --schema_file test/schema.sql || {
+        echo "Failed to setup database with wrench"
+        exit 1
+    }
     
     echo ""
     echo "🎉 Emulator setup complete!"

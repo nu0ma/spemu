@@ -27,10 +27,19 @@ func TestMain(m *testing.M) {
 		os.Setenv("SPANNER_EMULATOR_HOST", emulatorHost)
 	}
 
-	// Setup emulator instance and database
-	if err := setupEmulator(); err != nil {
-		fmt.Printf("Failed to setup emulator: %v\n", err)
-		os.Exit(1)
+	// Skip setup if running in CI (docker compose handles it)
+	if os.Getenv("CI") != "true" {
+		// Setup emulator instance and database
+		if err := setupEmulator(); err != nil {
+			fmt.Printf("Failed to setup emulator: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		// In CI, just verify the emulator is accessible
+		if err := waitForEmulator(); err != nil {
+			fmt.Printf("Emulator not accessible in CI: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	// Run tests
@@ -55,6 +64,34 @@ func setupEmulator() error {
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
+}
+
+func waitForEmulator() error {
+	// Wait for emulator to be accessible by checking if port is listening
+	maxAttempts := 30
+	host := "localhost"
+	port := emulatorHost[len(emulatorHost)-4:]
+	
+	for i := 0; i < maxAttempts; i++ {
+		// Use nc (netcat) to check if the port is listening
+		// -z: zero I/O mode (just check connectivity)
+		// -w1: timeout of 1 second
+		cmd := exec.Command("nc", "-z", "-w1", host, port)
+		err := cmd.Run()
+		
+		if err == nil {
+			// Port is listening and accepting connections
+			return nil
+		}
+		
+		// Wait before retry (starts with 1s, increases slightly each time)
+		waitTime := time.Duration(1+i/10) * time.Second
+		if waitTime > 3*time.Second {
+			waitTime = 3 * time.Second
+		}
+		time.Sleep(waitTime)
+	}
+	return fmt.Errorf("emulator port %s not listening after %d attempts", emulatorHost, maxAttempts)
 }
 
 func setupTestDatabase(t *testing.T) (*spanner.Client, func()) {
