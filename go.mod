@@ -1,6 +1,6 @@
 module github.com/nu0ma/spemu
 
-go 1.24.3
+go 1.24
 
 require (
 	cel.dev/expr v0.23.0 // indirect
