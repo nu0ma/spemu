@@ -59,9 +59,9 @@ test-unit: ## Run unit tests
 test-unit-verbose: ## Run unit tests with verbose output
 	go test -v -race -coverprofile=coverage.out $(TEST_PKG_LIST)
 
-test-integration: ## Run integration tests (requires Spanner emulator)
+test-integration: ## Run integration tests (automatically starts emulator)
 	@echo "Running integration tests..."
-	@echo "Note: This requires Spanner emulator to be running on localhost:9010"
+	@echo "Note: This will automatically setup Spanner emulator if needed"
 	SPANNER_EMULATOR_HOST=localhost:9010 go test -v ./test/...
 
 test-integration-verbose: ## Run integration tests with verbose output

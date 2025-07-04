@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -26,9 +27,34 @@ func TestMain(m *testing.M) {
 		os.Setenv("SPANNER_EMULATOR_HOST", emulatorHost)
 	}
 
+	// Setup emulator instance and database
+	if err := setupEmulator(); err != nil {
+		fmt.Printf("Failed to setup emulator: %v\n", err)
+		os.Exit(1)
+	}
+
 	// Run tests
 	code := m.Run()
 	os.Exit(code)
+}
+
+func setupEmulator() error {
+	// Check if setup script exists (look from project root)
+	scriptPath := "../scripts/setup-emulator.sh"
+	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
+		// Try from current directory (if running from project root)
+		scriptPath = "scripts/setup-emulator.sh"
+		if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
+			return fmt.Errorf("setup script not found: %s", scriptPath)
+		}
+	}
+
+	// Run setup script
+	cmd := exec.Command("bash", scriptPath)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	
+	return cmd.Run()
 }
 
 func setupTestDatabase(t *testing.T) (*spanner.Client, func()) {
