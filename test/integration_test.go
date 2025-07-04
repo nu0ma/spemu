@@ -100,7 +100,7 @@ func TestIntegration_ExecuteStatements(t *testing.T) {
 
 	// Verify data was inserted
 	ctx := context.Background()
-	
+
 	// Check users table
 	iter := client.Single().Query(ctx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM users"})
 	defer iter.Stop()
@@ -300,7 +300,7 @@ func TestIntegration_PerformanceWithLargeDataset(t *testing.T) {
 	// Generate multiple insert statements
 	var statements []string
 	for i := 1; i <= 100; i++ {
-		statements = append(statements, 
+		statements = append(statements,
 			fmt.Sprintf("INSERT INTO test_table (id, name, value, created_at) VALUES (%d, 'Test User %d', 'Value %d', '2024-01-01T00:00:00Z')", i, i, i))
 	}
 
@@ -319,4 +319,3 @@ func TestIntegration_PerformanceWithLargeDataset(t *testing.T) {
 		t.Errorf("Large dataset insertion took too long: %v", duration)
 	}
 }
-

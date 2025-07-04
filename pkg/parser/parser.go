@@ -53,7 +53,7 @@ func removeComments(content string) string {
 
 func splitStatements(content string) []string {
 	statements := strings.Split(content, ";")
-	
+
 	var result []string
 	for _, stmt := range statements {
 		stmt = strings.TrimSpace(stmt)
@@ -61,25 +61,25 @@ func splitStatements(content string) []string {
 			result = append(result, stmt)
 		}
 	}
-	
+
 	return result
 }
 
 func isValidDMLStatement(stmt string) bool {
 	stmt = strings.TrimSpace(strings.ToUpper(stmt))
-	
+
 	validPrefixes := []string{
 		"INSERT",
 		"UPDATE",
 		"DELETE",
 	}
-	
+
 	for _, prefix := range validPrefixes {
 		if strings.HasPrefix(stmt, prefix) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 

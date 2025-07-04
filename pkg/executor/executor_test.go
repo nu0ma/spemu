@@ -11,7 +11,7 @@ func TestNew(t *testing.T) {
 	// Test creating executor with valid config
 	cfg := &config.Config{
 		ProjectID:    "test-project",
-		InstanceID:   "test-instance", 
+		InstanceID:   "test-instance",
 		DatabaseID:   "test-database",
 		EmulatorHost: "localhost:9010",
 	}
@@ -40,14 +40,14 @@ func TestNew_InvalidConfig(t *testing.T) {
 			t.Error("Expected panic with nil config")
 		}
 	}()
-	
+
 	// This should panic
 	New(nil)
 }
 
 func TestExecutor_Close(t *testing.T) {
 	executor := &Executor{client: nil}
-	
+
 	// Should not panic with nil client
 	executor.Close()
 }
@@ -61,7 +61,7 @@ func TestExecuteStatements_Integration(t *testing.T) {
 	cfg := &config.Config{
 		ProjectID:    "test-project",
 		InstanceID:   "test-instance",
-		DatabaseID:   "test-database", 
+		DatabaseID:   "test-database",
 		EmulatorHost: "localhost:9010",
 	}
 

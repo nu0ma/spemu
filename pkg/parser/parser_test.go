@@ -15,10 +15,10 @@ func TestParseDMLContent(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name: "single INSERT statement",
-			content: `INSERT INTO users (id, name) VALUES (1, 'John');`,
+			name:     "single INSERT statement",
+			content:  `INSERT INTO users (id, name) VALUES (1, 'John');`,
 			expected: []string{"INSERT INTO users (id, name) VALUES (1, 'John')"},
-			wantErr: false,
+			wantErr:  false,
 		},
 		{
 			name: "multiple statements",
@@ -49,39 +49,39 @@ func TestParseDMLContent(t *testing.T) {
 			content: `-- Only comments
 			-- Nothing else`,
 			expected: nil,
-			wantErr: false,
+			wantErr:  false,
 		},
 		{
-			name: "invalid statement",
-			content: `SELECT * FROM users;`,
+			name:     "invalid statement",
+			content:  `SELECT * FROM users;`,
 			expected: nil,
-			wantErr: true,
+			wantErr:  true,
 		},
 		{
 			name: "mixed valid and invalid",
 			content: `INSERT INTO users (id) VALUES (1);
 			SELECT * FROM users;`,
 			expected: nil,
-			wantErr: true,
+			wantErr:  true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := ParseDMLContent(tt.content)
-			
+
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("ParseDMLContent() expected error but got none")
 				}
 				return
 			}
-			
+
 			if err != nil {
 				t.Errorf("ParseDMLContent() unexpected error: %v", err)
 				return
 			}
-			
+
 			if !reflect.DeepEqual(result, tt.expected) {
 				t.Errorf("ParseDMLContent() = %v, expected %v", result, tt.expected)
 			}
@@ -93,25 +93,25 @@ func TestParseDMLFile(t *testing.T) {
 	// Create temporary test file
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.sql")
-	
+
 	content := `INSERT INTO users (id, name) VALUES (1, 'John');
 	UPDATE users SET name = 'Jane' WHERE id = 1;`
-	
+
 	err := os.WriteFile(testFile, []byte(content), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
-	
+
 	result, err := ParseDMLFile(testFile)
 	if err != nil {
 		t.Errorf("ParseDMLFile() unexpected error: %v", err)
 	}
-	
+
 	expected := []string{
 		"INSERT INTO users (id, name) VALUES (1, 'John')",
 		"UPDATE users SET name = 'Jane' WHERE id = 1",
 	}
-	
+
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("ParseDMLFile() = %v, expected %v", result, expected)
 	}
