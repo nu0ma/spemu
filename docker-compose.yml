@@ -15,7 +15,7 @@ services:
 
   # Optional: Service to initialize the database
   spanner-init:
-    image: google/cloud-sdk:alpine
+    image: golang:1.24-alpine
     platform: linux/amd64
     container_name: spemu-spanner-init
     depends_on:
@@ -25,23 +25,20 @@ services:
       - SPANNER_EMULATOR_HOST=spanner-emulator:9010
     volumes:
       - ./test:/workspace/test
-      - ./examples:/workspace/examples
+      - ./scripts:/workspace/scripts
+      - ./go.mod:/workspace/go.mod
+      - ./go.sum:/workspace/go.sum
     working_dir: /workspace
     command: >
       sh -c "
+        echo 'Installing dependencies...' &&
+        apk add --no-cache git &&
+        go mod download &&
         echo 'Waiting for emulator to be ready...' &&
         sleep 5 &&
-        echo 'Creating Spanner instance...' &&
-        gcloud spanner instances create test-instance 
-          --config=emulator-config 
-          --description='Test Instance' 
-          --nodes=1 &&
-        echo 'Creating database with schema...' &&
-        gcloud spanner databases create test-database 
-          --instance=test-instance 
-          --ddl-file=test/schema.sql &&
-        echo 'Database setup complete!' &&
-        echo 'You can now run tests against spanner-emulator:9010'
+        echo 'Running setup script...' &&
+        go run scripts/setup.go &&
+        echo 'Database setup complete!'
       "
     profiles:
       - init

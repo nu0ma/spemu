@@ -27,10 +27,13 @@ func TestMain(m *testing.M) {
 		os.Setenv("SPANNER_EMULATOR_HOST", emulatorHost)
 	}
 
-	// Setup emulator instance and database
-	if err := setupEmulator(); err != nil {
-		fmt.Printf("Failed to setup emulator: %v\n", err)
-		os.Exit(1)
+	// Skip setup if running in CI (docker compose handles it)
+	if os.Getenv("CI") != "true" {
+		// Setup emulator instance and database
+		if err := setupEmulator(); err != nil {
+			fmt.Printf("Failed to setup emulator: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	// Run tests
