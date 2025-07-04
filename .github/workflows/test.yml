@@ -77,7 +77,7 @@ jobs:
     - name: Start Spanner Emulator with Docker
       run: |
         # Start emulator
-        docker-compose up -d spanner-emulator
+        docker compose up -d spanner-emulator
         
         # Wait for emulator to be ready
         timeout=60
@@ -93,7 +93,7 @@ jobs:
         echo "Emulator is ready"
         
         # Initialize database
-        docker-compose --profile init up spanner-init
+        docker compose --profile init up spanner-init
     
     - name: Run integration tests
       env:
