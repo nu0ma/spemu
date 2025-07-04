@@ -4,7 +4,17 @@ This repository uses automated versioning and releases. To enable this functiona
 
 ## Required GitHub Repository Settings
 
-### 1. Enable GitHub Actions to create Pull Requests
+### 1. Configure GitHub Token (if needed)
+
+If using a custom token:
+1. Go to **Settings** → **Secrets and variables** → **Actions**
+2. Click **New repository secret**
+3. Name: `GITHUB_TOKEN`
+4. Value: Your personal access token with appropriate permissions
+
+**Note**: For most cases, the default `GITHUB_TOKEN` provided by GitHub Actions should work.
+
+### 2. Enable GitHub Actions to create Pull Requests
 
 1. Go to your repository on GitHub
 2. Click on **Settings** tab
