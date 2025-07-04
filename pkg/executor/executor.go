@@ -61,4 +61,3 @@ func (e *Executor) ExecuteStatements(statements []string, verbose bool) error {
 
 	return nil
 }
-

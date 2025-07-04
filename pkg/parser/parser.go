@@ -86,4 +86,3 @@ func isValidDMLStatement(stmt string) bool {
 
 	return false
 }
-
