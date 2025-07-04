@@ -5,12 +5,6 @@ services:
     ports:
       - "9010:9010"
       - "9020:9020"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9020/"]
-      interval: 5s
-      timeout: 10s
-      retries: 20
-      start_period: 10s
     environment:
       - SPANNER_EMULATOR_HOST=localhost:9010
 
@@ -20,8 +14,7 @@ services:
     platform: linux/amd64
     container_name: spemu-spanner-init
     depends_on:
-      spanner-emulator:
-        condition: service_healthy
+      - spanner-emulator
     environment:
       - SPANNER_EMULATOR_HOST=spanner-emulator:9010
     volumes:
@@ -51,8 +44,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: spemu-dev
     depends_on:
-      spanner-emulator:
-        condition: service_healthy
+      - spanner-emulator
     environment:
       - SPANNER_EMULATOR_HOST=spanner-emulator:9010
       - CGO_ENABLED=0

@@ -78,7 +78,7 @@ jobs:
       run: |
         docker compose up -d spanner-emulator
         echo "Waiting for emulator to be ready..."
-        timeout 120 bash -c 'until curl -f http://localhost:9020 >/dev/null 2>&1; do sleep 3; done'
+        timeout 60 bash -c 'until netstat -tln | grep :9010; do sleep 2; done'
         echo "Spanner emulator is ready"
     
     - name: Setup Spanner database
