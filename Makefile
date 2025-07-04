@@ -4,7 +4,7 @@
 
 # Variables
 BINARY_NAME=spemu
-MAIN_PATH=./cmd/spemu
+MAIN_PATH=.
 PKG_LIST := $(shell go list ./...)
 TEST_PKG_LIST := $(shell go list ./pkg/...)
 
@@ -33,7 +33,7 @@ build-all: ## Build for all platforms
 	GOOS=windows GOARCH=amd64 go build -o $(BINARY_NAME)-windows-amd64.exe $(MAIN_PATH)
 
 install: ## Install the binary to GOPATH/bin
-	go install $(MAIN_PATH)
+	go install .
 
 # Code quality targets
 fmt: ## Format Go code

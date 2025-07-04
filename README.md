@@ -16,7 +16,7 @@ A command-line tool for inserting DML (Data Manipulation Language) statements in
 ### Install from source
 
 ```bash
-go install github.com/nu0ma/spemu/cmd@latest
+go install github.com/nu0ma/spemu@latest
 ```
 
 ### Build from source
@@ -188,8 +188,7 @@ The project includes GitHub Actions workflows for:
 ## Project Structure
 
 ```
-├── cmd/                 # Main application
-│   └── main.go
+├── main.go              # Main application
 ├── pkg/                 # Library packages
 │   ├── config/          # Configuration handling
 │   ├── executor/        # Spanner execution logic
