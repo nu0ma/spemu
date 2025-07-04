@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"cloud.google.com/go/spanner"
-	"spemu/pkg/config"
+	"github.com/ishikawaryoufutoshi/spanenr-inserter/pkg/config"
 )
 
 type Executor struct {

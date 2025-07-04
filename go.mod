@@ -1,4 +1,4 @@
-module spemu
+module github.com/ishikawaryoufutoshi/spanenr-inserter
 
 go 1.24.3
 
