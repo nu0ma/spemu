@@ -8,7 +8,7 @@ services:
     environment:
       - SPANNER_EMULATOR_HOST=localhost:9010
 
-  # Optional: Service to initialize the database
+  # Service to initialize the database with built-in schema initialization
   spanner-init:
     image: golang:1.24-alpine
     platform: linux/amd64
@@ -18,22 +18,17 @@ services:
     environment:
       - SPANNER_EMULATOR_HOST=spanner-emulator:9010
     volumes:
-      - ./test:/workspace/test
-      - ./scripts:/workspace/scripts
-      - ./go.mod:/workspace/go.mod
-      - ./go.sum:/workspace/go.sum
+      - .:/workspace
     working_dir: /workspace
     command: >
       sh -c "
         echo 'Installing dependencies...' &&
-        apk add --no-cache git &&
+        apk add --no-cache git netcat-openbsd &&
         go mod download &&
-        echo 'Installing wrench...' &&
-        go install github.com/cloudspannerecosystem/wrench@latest &&
         echo 'Waiting for emulator to be ready...' &&
-        sleep 5 &&
-        echo 'Setting up database with wrench...' &&
-        wrench reset --project test-project --instance test-instance --database test-database --schema_file test/schema.sql &&
+        timeout 60 sh -c 'until nc -z spanner-emulator 9010; do sleep 2; done' &&
+        echo 'Initializing database with built-in schema support...' &&
+        go run . --project test-project --instance test-instance --database test-database --init-schema test/schema.sql --verbose &&
         echo 'Database setup complete!'
       "
     profiles:

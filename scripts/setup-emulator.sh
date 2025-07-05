@@ -120,33 +120,16 @@ main() {
         exit 1
     fi
     
-    # Create instance and database using wrench
+    # Create instance and database using built-in schema initialization
     echo "Setting up instance and database..."
     cd "$(dirname "$0")/.."
     
-    # Install wrench if not available
-    if ! command -v wrench &> /dev/null; then
-        echo "Installing wrench..."
-        go install github.com/cloudspannerecosystem/wrench@latest
-    fi
-    
-    # Create or reset instance and database
-    echo "Setting up Spanner instance and database..."
-    
-    # First try to create the instance and database
-    if wrench create --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --schema_file test/schema.sql 2>&1 | grep -q "already exists"; then
-        echo "Database already exists, resetting..."
-        wrench reset --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --schema_file test/schema.sql || {
-            echo "Failed to reset database with wrench"
-            exit 1
-        }
-    else
-        # If create didn't show "already exists", re-run to see actual result
-        wrench create --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --schema_file test/schema.sql || {
-            echo "Failed to create database with wrench"
-            exit 1
-        }
-    fi
+    # Initialize database using built-in --init-schema functionality
+    echo "Initializing database with built-in schema support..."
+    go run . --project "$PROJECT_ID" --instance "$INSTANCE_ID" --database "$DATABASE_ID" --init-schema test/schema.sql --verbose || {
+        echo "Failed to initialize database with --init-schema"
+        exit 1
+    }
     
     echo ""
     echo "🎉 Emulator setup complete!"
