@@ -4,12 +4,12 @@ A command-line tool for inserting DML (Data Manipulation Language) statements in
 
 ## Features
 
+- No dependency on `gcloud` CLI
 - Parse and execute DML files (INSERT, UPDATE, DELETE statements)
 - Support for SQL comments (`--` style)
 - Dry run mode for validation
 - Verbose output for debugging
 - Integration with Spanner Emulator
-- No dependency on `gcloud` CLI (uses Go client libraries directly)
 - Comprehensive test suite with CI/CD
 
 ## Installation
