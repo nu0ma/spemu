@@ -24,7 +24,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git remote set-url origin https://${{ secrets.PAT_FOR_TAG_PUSH }}@github.com/${{ github.repository }}
 
       - name: Create and push tag
         run: |
