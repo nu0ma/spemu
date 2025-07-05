@@ -34,6 +34,12 @@ func TestMain(m *testing.M) {
 			fmt.Printf("Failed to setup emulator: %v\n", err)
 			os.Exit(1)
 		}
+	} else {
+		// In CI, just verify the emulator is accessible
+		if err := waitForEmulator(); err != nil {
+			fmt.Printf("Emulator not accessible in CI: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	// Run tests
@@ -60,10 +66,38 @@ func setupEmulator() error {
 	return cmd.Run()
 }
 
+func waitForEmulator() error {
+	// Wait for emulator to be accessible by checking if port is listening
+	maxAttempts := 30
+	host := "localhost"
+	port := emulatorHost[len(emulatorHost)-4:]
+
+	for i := 0; i < maxAttempts; i++ {
+		// Use nc (netcat) to check if the port is listening
+		// -z: zero I/O mode (just check connectivity)
+		// -w1: timeout of 1 second
+		cmd := exec.Command("nc", "-z", "-w1", host, port)
+		err := cmd.Run()
+
+		if err == nil {
+			// Port is listening and accepting connections
+			return nil
+		}
+
+		// Wait before retry (starts with 1s, increases slightly each time)
+		waitTime := time.Duration(1+i/10) * time.Second
+		if waitTime > 3*time.Second {
+			waitTime = 3 * time.Second
+		}
+		time.Sleep(waitTime)
+	}
+	return fmt.Errorf("emulator port %s not listening after %d attempts", emulatorHost, maxAttempts)
+}
+
 func setupTestDatabase(t *testing.T) (*spanner.Client, func()) {
 	t.Helper()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	cfg := &config.Config{
 		ProjectID:    testProjectID,
 		InstanceID:   testInstanceID,
@@ -73,13 +107,18 @@ func setupTestDatabase(t *testing.T) (*spanner.Client, func()) {
 
 	client, err := spanner.NewClient(ctx, cfg.DatabasePath())
 	if err != nil {
+		cancel()
 		t.Skipf("Failed to create Spanner client (emulator may not be running): %v", err)
 	}
 
 	// Cleanup function
 	cleanup := func() {
+		defer cancel()
 		// Clean up test data
-		_, err := client.Apply(ctx, []*spanner.Mutation{
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cleanupCancel()
+
+		_, err := client.Apply(cleanupCtx, []*spanner.Mutation{
 			spanner.Delete("comments", spanner.AllKeys()),
 			spanner.Delete("posts", spanner.AllKeys()),
 			spanner.Delete("users", spanner.AllKeys()),
@@ -128,10 +167,11 @@ func TestIntegration_ExecuteStatements(t *testing.T) {
 	}
 
 	// Verify data was inserted
-	ctx := context.Background()
+	queryCtx, queryCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer queryCancel()
 
 	// Check users table
-	iter := client.Single().Query(ctx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM users"})
+	iter := client.Single().Query(queryCtx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM users"})
 	defer iter.Stop()
 	row, err := iter.Next()
 	if err != nil {
@@ -146,7 +186,7 @@ func TestIntegration_ExecuteStatements(t *testing.T) {
 	}
 
 	// Check posts table
-	iter = client.Single().Query(ctx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM posts"})
+	iter = client.Single().Query(queryCtx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM posts"})
 	defer iter.Stop()
 	row, err = iter.Next()
 	if err != nil {
@@ -289,8 +329,9 @@ func TestIntegration_TransactionRollback(t *testing.T) {
 	}
 
 	// Verify that no users were inserted (transaction should have rolled back)
-	ctx := context.Background()
-	iter := client.Single().Query(ctx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM users WHERE id IN (201, 202)"})
+	verifyCtx, verifyCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer verifyCancel()
+	iter := client.Single().Query(verifyCtx, spanner.Statement{SQL: "SELECT COUNT(*) as count FROM users WHERE id IN (201, 202)"})
 	defer iter.Stop()
 	row, err := iter.Next()
 	if err != nil {
