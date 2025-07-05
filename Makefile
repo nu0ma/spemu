@@ -26,15 +26,6 @@ build: ## Build the binary
 	@echo "Building $(BINARY_NAME)..."
 	go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME) $(MAIN_PATH)
 
-build-all: ## Build for all platforms
-	@echo "Building for multiple platforms..."
-	for os in linux darwin windows; do \
-		for arch in amd64 arm64; do \
-			if [ "$$os" = "windows" ] && [ "$$arch" = "arm64" ]; then continue; fi; \
-			ext=""; [ "$$os" = "windows" ] && ext=".exe"; \
-			GOOS=$$os GOARCH=$$arch go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME)-$$os-$$arch$$ext $(MAIN_PATH); \
-		done; \
-	done
 
 install: ## Install the binary to GOPATH/bin
 	go install -ldflags "-X main.Version=$(VERSION)" .
@@ -134,12 +125,4 @@ clean: ## Clean build artifacts
 clean-all: clean ## Clean everything including module cache
 	go clean -modcache
 
-# Release targets
-release-check: ## Check if ready for release
-	@echo "Checking release readiness..."
-	$(MAKE) fmt
-	$(MAKE) lint
-	$(MAKE) test-all
-	$(MAKE) build
-	@echo "Release check completed successfully!"
 
