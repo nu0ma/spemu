@@ -75,16 +75,6 @@ brews:
     tap:
       owner: nu0ma
       name: spemu
-    repository:
-      owner: nu0ma
-      name: spemu
-      token: "{{ .Env.GITHUB_TOKEN }}"
-      pull_request:
-        enabled: true
-        base:
-          owner: nu0ma
-          name: spemu
-          branch: main
     directory: homebrew
     homepage: https://github.com/nu0ma/spemu
     description: "DML executor for Google Cloud Spanner Emulator"
@@ -93,6 +83,10 @@ brews:
       system "#{bin}/spemu --help"
     install: |
       bin.install "spemu"
+    pull_request:
+      enabled: true
+      base:
+        branch: main
 
 dockers:
   - image_templates:
