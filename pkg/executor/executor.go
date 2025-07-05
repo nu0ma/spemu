@@ -85,13 +85,13 @@ func InitializeSchema(cfg *config.Config, schemaFile string, verbose bool) error
 
 	// Create instance first (for emulator, this is often a no-op)
 	instancePath := fmt.Sprintf("projects/%s/instances/%s", cfg.ProjectID, cfg.InstanceID)
-	
+
 	// Check if database exists
 	databasePath := cfg.DatabasePath()
 	_, err = adminClient.GetDatabase(ctx, &databasepb.GetDatabaseRequest{
 		Name: databasePath,
 	})
-	
+
 	if err != nil {
 		// Database doesn't exist, create it
 		if verbose {
@@ -106,7 +106,7 @@ func InitializeSchema(cfg *config.Config, schemaFile string, verbose bool) error
 
 		// Parse DDL statements
 		ddlStatements := parseDDLStatements(string(schemaContent))
-		
+
 		if verbose {
 			fmt.Printf("Found %d DDL statements\n", len(ddlStatements))
 		}
@@ -144,7 +144,7 @@ func parseDDLStatements(content string) []string {
 	// Remove comment lines
 	lines := strings.Split(content, "\n")
 	var cleanLines []string
-	
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		// Skip empty lines and comment lines
@@ -152,7 +152,7 @@ func parseDDLStatements(content string) []string {
 			cleanLines = append(cleanLines, line)
 		}
 	}
-	
+
 	// Join back and split by semicolon
 	cleanContent := strings.Join(cleanLines, " ")
 	statements := strings.Split(cleanContent, ";")
