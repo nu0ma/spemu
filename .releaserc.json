@@ -1,9 +1,0 @@
-{
-  "branches": ["main"],
-  "repositoryUrl": "https://github.com/nu0ma/spemu",
-  "plugins": [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
-    "@semantic-release/github"
-  ]
-}
