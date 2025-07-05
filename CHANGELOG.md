@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/nu0ma/spemu/compare/spemu-v0.4.0...spemu-v0.4.1) (2025-07-05)
+
+
+### Bug Fixes
+
+* replace Go setup script with shell script for integration tests ([#6](https://github.com/nu0ma/spemu/issues/6)) ([588fc9f](https://github.com/nu0ma/spemu/commit/588fc9f594b4325c48e9a7ef3e2c7523c0373ffe))
+
 ## [0.4.0](https://github.com/nu0ma/spemu/compare/spemu-v0.3.0...spemu-v0.4.0) (2025-07-04)
 
 
