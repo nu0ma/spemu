@@ -14,12 +14,6 @@ check_dependencies() {
         exit 1
     fi
     
-    if ! command -v gcloud &> /dev/null; then
-        echo "Error: gcloud CLI is required but not installed"
-        echo "Please install Google Cloud SDK: https://cloud.google.com/sdk/docs/install"
-        exit 1
-    fi
-    
     if ! command -v nc &> /dev/null; then
         echo "Error: nc (netcat) is required but not installed"
         echo "Please install netcat: apt-get install netcat (Debian/Ubuntu) or brew install netcat (macOS)"
