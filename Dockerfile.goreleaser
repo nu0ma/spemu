@@ -1,0 +1,8 @@
+# Dockerfile for GoReleaser builds
+FROM scratch
+
+# Copy the binary built by GoReleaser
+COPY spemu /usr/local/bin/spemu
+
+# Set the entrypoint
+ENTRYPOINT ["/usr/local/bin/spemu"]
