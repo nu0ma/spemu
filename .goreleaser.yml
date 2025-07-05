@@ -72,6 +72,9 @@ release:
 
 brews:
   - name: spemu
+    tap:
+      owner: nu0ma
+      name: spemu
     repository:
       owner: nu0ma
       name: spemu
