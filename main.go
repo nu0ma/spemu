@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime/debug"
 
 	"github.com/nu0ma/spemu/pkg/config"
 	"github.com/nu0ma/spemu/pkg/executor"
@@ -13,6 +14,25 @@ import (
 
 // Version is set during build time via ldflags
 var Version = "unknown"
+
+// getVersion returns the version of the application.
+// Priority: Go modules version > ldflags version > "unknown"
+func getVersion() string {
+	// 1. Try to get version from Go modules (works with go install)
+	if info, ok := debug.ReadBuildInfo(); ok {
+		if info.Main.Version != "(devel)" && info.Main.Version != "" {
+			return info.Main.Version
+		}
+	}
+	
+	// 2. Use build-time ldflags version (works with make build)
+	if Version != "unknown" {
+		return Version
+	}
+	
+	// 3. Fallback
+	return "unknown"
+}
 
 func main() {
 	var (
@@ -29,7 +49,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Printf("spemu version %s\n", Version)
+		fmt.Printf("spemu version %s\n", getVersion())
 		return
 	}
 
