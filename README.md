@@ -4,6 +4,7 @@ A command-line tool for inserting DML (Data Manipulation Language) statements in
 
 ## Features
 
+- No dependency on `gcloud` CLI
 - Parse and execute DML files (INSERT, UPDATE, DELETE statements)
 - Support for SQL comments (`--` style)
 - Dry run mode for validation
@@ -82,6 +83,8 @@ DELETE FROM users WHERE id = 2;
 
 - Go 1.21 or later
 - Docker and Docker Compose
+
+**Note:** spemu does not require the `gcloud` CLI tool. It connects directly to the Spanner Emulator using Go client libraries.
 
 ### Setup Development Environment
 
