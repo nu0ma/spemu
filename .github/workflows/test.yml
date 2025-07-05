@@ -106,7 +106,7 @@ jobs:
         echo "Testing dry run..."
         go run . --project test-project --instance test-instance --database test-database --dry-run examples/seed.sql
         echo "Executing DML statements..."
-        go run . --project test-project --instance test-instance --database test-database examples/seed.sql --verbose
+        go run . --project test-project --instance test-instance --database test-database --verbose examples/seed.sql
     
     - name: Stop Spanner emulator
       if: always()
