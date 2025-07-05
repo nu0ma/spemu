@@ -10,6 +10,8 @@ import (
 	"cloud.google.com/go/spanner"
 	database "cloud.google.com/go/spanner/admin/database/apiv1"
 	"cloud.google.com/go/spanner/admin/database/apiv1/databasepb"
+	instance "cloud.google.com/go/spanner/admin/instance/apiv1"
+	"cloud.google.com/go/spanner/admin/instance/apiv1/instancepb"
 	"github.com/nu0ma/spemu/pkg/config"
 )
 
@@ -77,18 +79,66 @@ func InitializeSchema(cfg *config.Config, schemaFile string, verbose bool) error
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	adminClient, err := database.NewDatabaseAdminClient(ctx)
+	// Create instance admin client
+	instanceAdminClient, err := instance.NewInstanceAdminClient(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to create admin client: %w", err)
+		return fmt.Errorf("failed to create instance admin client: %w", err)
 	}
-	defer adminClient.Close()
+	defer instanceAdminClient.Close()
 
-	// Create instance first (for emulator, this is often a no-op)
+	// Create database admin client
+	databaseAdminClient, err := database.NewDatabaseAdminClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create database admin client: %w", err)
+	}
+	defer databaseAdminClient.Close()
+
+	// Create instance first (for emulator)
+	projectPath := fmt.Sprintf("projects/%s", cfg.ProjectID)
 	instancePath := fmt.Sprintf("projects/%s/instances/%s", cfg.ProjectID, cfg.InstanceID)
+
+	// Check if instance exists
+	_, err = instanceAdminClient.GetInstance(ctx, &instancepb.GetInstanceRequest{
+		Name: instancePath,
+	})
+
+	if err != nil {
+		// Instance doesn't exist, create it
+		if verbose {
+			fmt.Printf("Creating instance: %s\n", instancePath)
+		}
+
+		createInstanceOp, err := instanceAdminClient.CreateInstance(ctx, &instancepb.CreateInstanceRequest{
+			Parent:     projectPath,
+			InstanceId: cfg.InstanceID,
+			Instance: &instancepb.Instance{
+				Name:        instancePath,
+				DisplayName: cfg.InstanceID,
+				NodeCount:   1,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create instance: %w", err)
+		}
+
+		// Wait for instance creation to complete
+		_, err = createInstanceOp.Wait(ctx)
+		if err != nil {
+			return fmt.Errorf("instance creation failed: %w", err)
+		}
+
+		if verbose {
+			fmt.Printf("Instance created successfully: %s\n", cfg.InstanceID)
+		}
+	} else {
+		if verbose {
+			fmt.Printf("Instance already exists: %s\n", cfg.InstanceID)
+		}
+	}
 
 	// Check if database exists
 	databasePath := cfg.DatabasePath()
-	_, err = adminClient.GetDatabase(ctx, &databasepb.GetDatabaseRequest{
+	_, err = databaseAdminClient.GetDatabase(ctx, &databasepb.GetDatabaseRequest{
 		Name: databasePath,
 	})
 
@@ -112,7 +162,7 @@ func InitializeSchema(cfg *config.Config, schemaFile string, verbose bool) error
 		}
 
 		// Create database with schema
-		createOp, err := adminClient.CreateDatabase(ctx, &databasepb.CreateDatabaseRequest{
+		createOp, err := databaseAdminClient.CreateDatabase(ctx, &databasepb.CreateDatabaseRequest{
 			Parent:          instancePath,
 			CreateStatement: fmt.Sprintf("CREATE DATABASE `%s`", cfg.DatabaseID),
 			ExtraStatements: ddlStatements,
