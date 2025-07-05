@@ -1,0 +1,28 @@
+{
+  "name": "spemu",
+  "version": "0.0.0-development",
+  "description": "Spanner Emulator DML Inserter - Execute DML statements against Google Cloud Spanner Emulator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nu0ma/spemu.git"
+  },
+  "keywords": [
+    "spanner",
+    "emulator",
+    "dml",
+    "google-cloud",
+    "cli"
+  ],
+  "author": "nu0ma",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.6",
+    "semantic-release": "^22.0.12"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

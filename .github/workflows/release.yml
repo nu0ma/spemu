@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+    
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
+    - name: Download dependencies
+      run: go mod download
+    
+    - name: Run tests
+      run: |
+        go fmt ./...
+        go vet ./...
+        go test -v -race ./pkg/...
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install semantic-release
+      run: |
+        npm install --save-dev semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github
+    
+    - name: Build binaries for multiple platforms
+      run: |
+        make build-all
+    
+    - name: Create release artifacts
+      run: |
+        mkdir -p dist
+        for file in spemu-*; do
+          if [ -f "$file" ]; then
+            tar -czf "dist/${file}.tar.gz" "$file"
+          fi
+        done
+        # Create checksums
+        cd dist && sha256sum *.tar.gz > checksums.txt
+    
+    - name: Run semantic-release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npx semantic-release
