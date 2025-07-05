@@ -12,7 +12,7 @@ import (
 )
 
 // Version is set during build time via ldflags
-var Version = "dev"
+var Version = "unknown"
 
 func main() {
 	var (

@@ -7,7 +7,7 @@ BINARY_NAME=spemu
 MAIN_PATH=.
 PKG_LIST := $(shell go list ./...)
 TEST_PKG_LIST := $(shell go list ./pkg/...)
-VERSION := $(shell cat version.txt)
+VERSION := $(shell git describe --tags --always --dirty)
 
 # Default target
 help: ## Show this help message
