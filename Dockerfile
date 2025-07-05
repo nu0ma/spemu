@@ -1,4 +1,4 @@
-# Dockerfile for GoReleaser builds
+# Multi-stage build for spemu
 FROM scratch
 
 # Copy the binary built by GoReleaser
