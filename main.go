@@ -16,14 +16,15 @@ var Version = "dev"
 
 func main() {
 	var (
-		dryRun   = flag.Bool("dry-run", false, "Parse and validate DML without executing")
-		verbose  = flag.Bool("verbose", false, "Enable verbose output")
-		help     = flag.Bool("help", false, "Show help message")
-		version  = flag.Bool("version", false, "Show version information")
-		project  = flag.String("project", "", "Spanner project ID (required)")
-		instance = flag.String("instance", "", "Spanner instance ID (required)")
-		database = flag.String("database", "", "Spanner database ID (required)")
-		port     = flag.String("port", "9010", "Spanner emulator port (default: 9010)")
+		dryRun     = flag.Bool("dry-run", false, "Parse and validate DML without executing")
+		verbose    = flag.Bool("verbose", false, "Enable verbose output")
+		help       = flag.Bool("help", false, "Show help message")
+		version    = flag.Bool("version", false, "Show version information")
+		initSchema = flag.String("init-schema", "", "Initialize database with schema file (DDL)")
+		project    = flag.String("project", "", "Spanner project ID (required)")
+		instance   = flag.String("instance", "", "Spanner instance ID (required)")
+		database   = flag.String("database", "", "Spanner database ID (required)")
+		port       = flag.String("port", "9010", "Spanner emulator port (default: 9010)")
 	)
 	flag.Parse()
 
@@ -37,9 +38,41 @@ func main() {
 		return
 	}
 
+	// Handle schema initialization mode
+	if *initSchema != "" {
+		// In schema initialization mode, no DML file is required
+		if *project == "" || *instance == "" || *database == "" {
+			fmt.Fprintf(os.Stderr, "Error: --project, --instance, and --database are required for schema initialization\n")
+			os.Exit(1)
+		}
+
+		emulatorHost := fmt.Sprintf("localhost:%s", *port)
+		cfg := &config.Config{
+			ProjectID:    *project,
+			InstanceID:   *instance,
+			DatabaseID:   *database,
+			EmulatorHost: emulatorHost,
+		}
+
+		if *verbose {
+			fmt.Printf("Initializing schema from: %s\n", *initSchema)
+			fmt.Printf("Configuration: %+v\n", cfg)
+		}
+
+		err := executor.InitializeSchema(cfg, *initSchema, *verbose)
+		if err != nil {
+			log.Fatalf("Failed to initialize schema: %v", err)
+		}
+
+		fmt.Printf("Schema initialization completed successfully\n")
+		return
+	}
+
+	// Normal DML execution mode
 	args := flag.Args()
 	if len(args) != 1 {
 		fmt.Fprintf(os.Stderr, "Usage: spemu [options] <dml-file>\n")
+		fmt.Fprintf(os.Stderr, "       spemu [options] --init-schema <schema-file>\n")
 		fmt.Fprintf(os.Stderr, "Run 'spemu --help' for more information.\n")
 		os.Exit(1)
 	}
@@ -112,19 +145,25 @@ func showHelp() {
 	fmt.Printf(`spemu - Spanner Emulator DML Inserter
 
 Usage:
-  spemu [options] <dml-file>
+  spemu [options] <dml-file>                    # Execute DML statements
+  spemu [options] --init-schema <schema-file>   # Initialize database with schema
 
 Options:
   --project        Spanner project ID (required)
   --instance       Spanner instance ID (required)
   --database       Spanner database ID (required)
   --port           Spanner emulator port (default: 9010)
+  --init-schema    Initialize database with schema file (DDL)
   --dry-run        Parse and validate DML without executing
   --verbose        Enable verbose output
   --version        Show version information
   --help           Show this help message
 
 Examples:
+  # Initialize database schema
+  spemu --project=test-project --instance=test-instance --database=test-database --init-schema=./schema.sql
+
+  # Execute DML statements
   spemu --project=test-project --instance=test-instance --database=test-database ./seed.sql
   spemu --project=my-proj --instance=my-inst --database=my-db --dry-run ./test.sql
   spemu --project=test --instance=test --database=test --port=9020 ./users.sql
