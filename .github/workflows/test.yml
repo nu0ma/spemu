@@ -81,8 +81,9 @@ jobs:
     - name: Start Spanner emulator
       run: |
         docker compose -f docker-compose.test.yml up -d spanner-emulator
-        echo "Waiting for emulator to be healthy..."
-        timeout 60 bash -c 'until docker compose -f docker-compose.test.yml ps spanner-emulator | grep -q healthy; do sleep 2; done'
+        echo "Waiting for emulator to be ready..."
+        sleep 10  # Give emulator time to start
+        timeout 60 bash -c 'until nc -z localhost 9010; do sleep 2; done'
         echo "Spanner emulator is ready"
     
     - name: Initialize database schema
