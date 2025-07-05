@@ -14,18 +14,72 @@ A command-line tool for inserting DML (Data Manipulation Language) statements in
 
 ## Installation
 
-### Install from source
+### Install from Go (Recommended)
 
+Install the latest release:
 ```bash
 go install github.com/nu0ma/spemu@latest
 ```
 
-### Build from source
+Install a specific version:
+```bash
+go install github.com/nu0ma/spemu@v0.4.1
+```
+
+### Download Pre-built Binaries
+
+Download the latest release from [GitHub Releases](https://github.com/nu0ma/spemu/releases):
+
+#### Linux (x86_64)
+```bash
+curl -L https://github.com/nu0ma/spemu/releases/latest/download/spemu_Linux_x86_64.tar.gz | tar xz
+sudo mv spemu /usr/local/bin/
+```
+
+#### macOS (Intel)
+```bash
+curl -L https://github.com/nu0ma/spemu/releases/latest/download/spemu_Darwin_x86_64.tar.gz | tar xz
+sudo mv spemu /usr/local/bin/
+```
+
+#### macOS (Apple Silicon)
+```bash
+curl -L https://github.com/nu0ma/spemu/releases/latest/download/spemu_Darwin_arm64.tar.gz | tar xz
+sudo mv spemu /usr/local/bin/
+```
+
+#### Windows
+Download `spemu_Windows_x86_64.zip` from the [releases page](https://github.com/nu0ma/spemu/releases) and extract the executable.
+
+### Using Homebrew (macOS/Linux)
+
+**Coming Soon** - Homebrew tap will be available in a future release:
+```bash
+brew install nu0ma/tap/spemu
+```
+
+### Build from Source
 
 ```bash
 git clone https://github.com/nu0ma/spemu.git
 cd spemu
 make build
+```
+
+### Verification
+
+Verify the installation:
+```bash
+spemu --version
+```
+
+All release binaries include checksums for verification:
+```bash
+# Download checksums
+curl -L https://github.com/nu0ma/spemu/releases/latest/download/checksums.txt
+
+# Verify binary (example for Linux)
+sha256sum -c checksums.txt --ignore-missing
 ```
 
 ## Usage

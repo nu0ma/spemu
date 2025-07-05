@@ -1,0 +1,208 @@
+# GoReleaser configuration for spemu
+# Documentation: https://goreleaser.com
+
+project_name: spemu
+
+before:
+  hooks:
+    # Remove any existing binaries
+    - go clean
+    # Run tests before release
+    - go test ./...
+    # Format and lint
+    - go fmt ./...
+    - go vet ./...
+
+builds:
+  - id: spemu
+    main: .
+    binary: spemu
+    
+    # Build for multiple platforms
+    goos:
+      - linux
+      - windows
+      - darwin
+    
+    goarch:
+      - amd64
+      - arm64
+    
+    # Exclude unsupported combinations
+    ignore:
+      - goos: windows
+        goarch: arm64
+    
+    # Build flags and ldflags
+    env:
+      - CGO_ENABLED=0
+    
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+      - -X main.Commit={{.Commit}}
+      - -X main.Date={{.Date}}
+    
+    # Build tags
+    tags:
+      - osusergo
+      - netgo
+      - static_build
+
+archives:
+  - id: spemu
+    format: tar.gz
+    # Use zip for Windows
+    format_overrides:
+      - goos: windows
+        format: zip
+    
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+      - examples/**/*
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - '^style:'
+  groups:
+    - title: Features
+      regexp: '^.*?(feat|feature)(\(.+\))??!?:.+$'
+      order: 0
+    - title: 'Bug fixes'
+      regexp: '^.*?(fix|bug)(\(.+\))??!?:.+$'
+      order: 1
+    - title: 'Performance improvements'
+      regexp: '^.*?(perf)(\(.+\))??!?:.+$'
+      order: 2
+    - title: Others
+      order: 999
+
+release:
+  # Draft release until ready
+  draft: false
+  # Replace existing release
+  replace_existing_draft: true
+  # Target branch
+  target_commitish: '{{ .Commit }}'
+  # Release discussion
+  discussion_category_name: General
+  # Disable release
+  disable: false
+  # Skip upload
+  skip_upload: false
+  
+  header: |
+    ## spemu {{.Tag}}
+    
+    Welcome to this new release of spemu! 
+    
+    ### What's New
+    This release includes various improvements and bug fixes.
+    
+    ### Installation
+    
+    #### Using Go install
+    ```bash
+    go install github.com/nu0ma/spemu@{{.Tag}}
+    ```
+    
+    #### Download binaries
+    Download the appropriate binary for your platform from the assets below.
+    
+    #### Using Homebrew (coming soon)
+    ```bash
+    brew install nu0ma/tap/spemu
+    ```
+
+  footer: |
+    ---
+    
+    **Full Changelog**: https://github.com/nu0ma/spemu/compare/{{.PreviousTag}}...{{.Tag}}
+    
+    ### Verification
+    
+    All binaries are signed and checksums are provided. Verify downloads with:
+    ```bash
+    sha256sum -c checksums.txt
+    ```
+
+# Homebrew tap (optional)
+brews:
+  - repository:
+      owner: nu0ma
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    
+    folder: Formula
+    
+    homepage: "https://github.com/nu0ma/spemu"
+    description: "A command-line tool for executing DML statements against Google Cloud Spanner Emulator"
+    
+    license: "MIT"
+    
+    skip_upload: auto
+    
+    dependencies:
+      - name: go
+        type: build
+    
+    test: |
+      system "#{bin}/spemu --version"
+    
+    install: |
+      bin.install "spemu"
+
+# Docker images (optional)
+dockers:
+  - image_templates:
+      - "ghcr.io/nu0ma/spemu:{{ .Tag }}"
+      - "ghcr.io/nu0ma/spemu:latest"
+    
+    dockerfile: Dockerfile.goreleaser
+    
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+    
+    skip_push: false
+
+# GitHub releases
+github_urls:
+  download: https://github.com
+
+# Global hooks
+hooks:
+  pre: 
+    - go mod tidy
+  post: echo "Release {{.Tag}} completed successfully!"
+
+# Announcements (optional)
+announce:
+  skip: true
